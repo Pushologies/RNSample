@@ -5,12 +5,12 @@
  * @format
  */
 // import messaging from '@react-native-firebase/messaging';
-import { AndroidPushConfig, ConnectionType, PushSDKModule, initAndroidPushSDK } from 'pushologies-notifications';
+import { PushSDKModule } from 'pushologies-notifications';
 import React from 'react';
 
 import {
   Button,
-  Platform,
+  PermissionsAndroid,
   StyleSheet,
   Text,
   TextInput,
@@ -21,56 +21,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 const App = () => {
   const [result, setResult] = React.useState<String | String>();
   const [inputText, onChangeText] = React.useState<String | undefined>();
-  const [isSDKInitialised, setInitialised] = React.useState<Boolean | false>()
   const isDarkMode = useColorScheme() === 'dark';
-  React.useEffect(() => {
-    if (isSDKInitialised) {
-      setResult('PushSDK already initialised');
-      return
-    }
-    initSDK()
-    setInitialised(true)
-  }, []);
-
-  const initSDK = () => {
-    console.log('init SDK');
-    if (isSDKInitialised) {
-      setResult('PushSDK already initialised');
-      return
-    }
-    if (Platform.OS === 'android') {
-      initAndroidSDK()
-      setResult("PushSDK initialised");
-      console.log("result for sdk init");
-      console.log(result);
-
-    } else {
-      PushSDKModule.initSDK(
-        'XXXXX-XXXXX-XXXXX-XXXXX',
-        'XXXXXXXXXXXXXXXXXXXXXXX',
-      );
-      setResult("PushSDK initialised");
-    }
-  };
-
-  const initAndroidSDK = async () => {
-    try {
-      const result = await initAndroidPushSDK(
-        new AndroidPushConfig(
-          "XXXXX-XXXXX-XXXXX-XXXXX",
-          "XXXXXXXXXXXXXXXXXXXXXXX",
-          "0.0.1",
-          "Push React",
-          ConnectionType.WIFI,
-          true,
-          true,
-          true,
-          20))
-      setResult(result);
-    } catch (error) {
-      setResult(`PushSDK is not initialised: ${error}`);
-    }
-  };
 
   const getDeviceId = async () => {
     console.log('Get device Id');
@@ -134,6 +85,78 @@ const App = () => {
     }
   };
 
+  const updatePersonalisationVariable = async () => {
+    console.log('Update Personalisation');
+    try {
+      const success = await PushSDKModule.updatePersonalisationVariable(
+        "key",
+        "value",
+      );
+      setResult(`Update Personalisation Success: ${success}`);
+    } catch {
+      setResult('Error Updating Personalisation');
+    }
+  };
+
+  const getAllPersonalisation = async () => {
+    console.log('Get All Personalisation');
+    try {
+      const personalisation = await PushSDKModule.getAllPersonalisation();
+      setResult(`Personalisation: ${JSON.stringify(personalisation)}`);
+    } catch {
+      setResult('Error fetching the Personalisation');
+    }
+  };
+  
+  const requestAndroidPermissions = async () => {
+    try {
+      await requestNotificationPermission();
+      await requestLocationPermissionAndroid();
+    } catch (error) {
+      setResult(`PushSDK is Permissions Error: ${error}`);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    const notificationPerm = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+    const granted = PermissionsAndroid.RESULTS.GRANTED;
+    try {
+      const grantedPerm =
+        (await PermissionsAndroid.requestMultiple([notificationPerm]))[
+          notificationPerm
+        ] === granted;
+      console.log(`Notification Permisson: ${grantedPerm}\n`);
+      return grantedPerm;
+    } catch (err) {
+      setResult('Error');
+      console.warn(err);
+    }
+    return false;
+  };
+
+
+  const requestLocationPermissionAndroid = async () => {
+    const finePerm = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+    const bckgPerm = PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION;
+    const granted = PermissionsAndroid.RESULTS.GRANTED;
+    try {
+      const grantedFine =
+        (await PermissionsAndroid.requestMultiple([finePerm]))[finePerm] ===
+        granted;
+      const grantedBckg =
+        (await PermissionsAndroid.requestMultiple([bckgPerm]))[bckgPerm] ===
+        granted;
+      console.log(
+        `Fine Location: ${grantedFine}\nBackground Location: ${grantedBckg}\n`,
+      );
+      return grantedFine && grantedBckg;
+    } catch (err) {
+      setResult('Error');
+      console.warn(err);
+    }
+    return false;
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -148,6 +171,13 @@ const App = () => {
         value={inputText}
         placeholder="Enter the value"
       />
+      <Button
+        onPress={() => {
+          requestAndroidPermissions();
+        }}
+        title="Request Android Permissions"
+      />
+      <View style={styles.space} />
       <Button
         onPress={() => {
           getDeviceId();
@@ -185,6 +215,20 @@ const App = () => {
           unsubscribeTag();
         }}
         title="Unsubscribe Tag"
+      />
+      <View style={styles.space} />
+      <Button
+        onPress={() => {
+          updatePersonalisationVariable();
+        }}
+        title="Update Personalisation"
+      />
+            <View style={styles.space} />
+       <Button
+        onPress={() => {
+          getAllPersonalisation();
+        }}
+        title="Get All Personalisation"
       />
       <View style={styles.space} />
 

@@ -10,7 +10,10 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-  
+    [PushSDKModule initPushSDK:@"XXXX-XXXXX-XXXX-XXXX" // api key
+                      secret:@"XXXX+XXXXX+XXXXXXXXX" // api secret
+              inAppOpenDelay:0                                        // in app delay
+                    tenantId:@"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"]; //tenant id
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
   
 }

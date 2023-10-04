@@ -44,11 +44,11 @@ target 'TestProject' do
   )
   
   target 'NotificationServiceExtension' do 
-    pod 'Pushologies', '~> 4.1.4' 
+    pod 'Pushologies', '~> 4.4.2' 
   end
  
   target 'NotificationContentExtension' do 
-    pod 'Pushologies', '~> 4.1.4' 
+    pod 'Pushologies', '~> 4.4.2' 
   end
 
   target 'TestProjectTests' do
